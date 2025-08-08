@@ -3,6 +3,24 @@ import { combineData } from '../src/lib/utils/dataProcessor.ts';
 import fs from 'fs';
 import path from 'path';
 
+const outputFile = 'static/data/processed/combined-data.json';
+const sourceFiles = [
+    'static/data/grades.csv',
+    'static/data/eval-params.csv',
+    'static/data/eval-medians.csv'
+];
+
+// Skip if output is newer than all inputs
+if (fs.existsSync(outputFile)) {
+    const outputTime = fs.statSync(outputFile).mtimeMs;
+    const shouldRebuild = sourceFiles.some(file =>
+        fs.statSync(file).mtimeMs > outputTime
+    );
+    if (!shouldRebuild) {
+        console.log('No changes detected, skipping data processing.');
+        process.exit(0);
+    }
+}
 
 async function processData() {
     try {

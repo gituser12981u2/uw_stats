@@ -170,7 +170,8 @@
 				averageGPA: instructor.totalGPA / instructor.offerings,
 				averageRating:
 					instructor.ratings.length > 0
-						? instructor.ratings.reduce((a, b) => a + b, 0) / instructor.ratings.length
+						? instructor.ratings.reduce((a: number, b: number) => a + b, 0) /
+							instructor.ratings.length
 						: null
 			}))
 			.sort((a, b) => b.offerings - a.offerings);
