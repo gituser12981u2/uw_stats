@@ -1,9 +1,8 @@
 import type { EvalMedian, EvalParam, GradeData } from "$lib/types";
 
-/**
- * Enhanced CSV parser with better error handling and type safety
- */
-export function parseCSV(csvText: string): any[] {
+type RawCSVRow = Record<string, string | number | ''>;
+
+export function parseCSV(csvText: string): RawCSVRow[] {
     if (!csvText || typeof csvText !== 'string') {
         throw new Error('Invalid CSV text provided');
     }
@@ -26,7 +25,7 @@ export function parseCSV(csvText: string): any[] {
         throw new Error('No valid headers found in CSV');
     }
 
-    const data: any[] = [];
+    const data: RawCSVRow[] = [];
     const errors: string[] = [];
 
     for (let i = 1; i < lines.length; i++) {
@@ -35,7 +34,7 @@ export function parseCSV(csvText: string): any[] {
 
         try {
             const values = parseCSVLine(line);
-            const row: any = {};
+            const row: RawCSVRow = {};
 
             headers.forEach((header, index) => {
                 const rawValue = values[index]?.trim().replace(/^"|"$/g, '') || '';
@@ -109,7 +108,7 @@ function parseCSVLine(line: string): string[] {
 /**
  * Converts string values to appropriate types
  */
-function convertValue(value: string): any {
+function convertValue(value: string): string | number | '' {
     if (value === '' || value === 'NULL' || value === 'null') {
         return '';
     }
@@ -130,7 +129,7 @@ function convertValue(value: string): any {
 /**
  * Transforms raw CSV data to GradeData with validation
  */
-export function transformGradeData(rawData: any[]): GradeData[] {
+export function transformGradeData(rawData: RawCSVRow[]): GradeData[] {
     if (!Array.isArray(rawData) || rawData.length === 0) {
         throw new Error('Invalid or empty grade data provided');
     }
@@ -171,7 +170,7 @@ export function transformGradeData(rawData: any[]): GradeData[] {
 /**
  * Transforms raw CSV data to EvalParam with validation
  */
-export function transformEvalParamData(rawData: any[]): EvalParam[] {
+export function transformEvalParamData(rawData: RawCSVRow[]): EvalParam[] {
     if (!Array.isArray(rawData) || rawData.length === 0) {
         throw new Error('Invalid or empty eval param data provided');
     }
@@ -221,7 +220,7 @@ export function transformEvalParamData(rawData: any[]): EvalParam[] {
 /**
  * Transforms raw CSV data to EvalMedian with validation
  */
-export function transformEvalMedianData(rawData: any[]): EvalMedian[] {
+export function transformEvalMedianData(rawData: RawCSVRow[]): EvalMedian[] {
     if (!Array.isArray(rawData) || rawData.length === 0) {
         throw new Error('Invalid or empty eval median data provided');
     }
@@ -257,7 +256,7 @@ export function transformEvalMedianData(rawData: any[]): EvalMedian[] {
 /**
  * Safely converts value to string with fallback
  */
-function safeString(value: any, fallback: string = ''): string {
+function safeString(value: unknown, fallback: string = ''): string {
     if (value === null || value === undefined) {
         return fallback;
     }
@@ -267,7 +266,7 @@ function safeString(value: any, fallback: string = ''): string {
 /**
  * Safely converts value to number with fallback
  */
-function safeNumber(value: any, fallback: number = 0): number {
+function safeNumber(value: unknown, fallback: number = 0): number {
     if (value === null || value === undefined || value === '') {
         return fallback;
     }
