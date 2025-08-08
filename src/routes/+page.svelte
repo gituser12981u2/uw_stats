@@ -30,51 +30,54 @@
 
 	// Loading states
 	let isLoading = true;
-	let loadingStage = 'Initializing...';
 	let dataLoaded = false;
 
 	onMount(async () => {
-		console.log('Starting optimized data load...');
-
 		try {
-			loadingStage = 'Loading CSV files...';
-			const data = await loadDataFromFiles();
+			// Load from static JSON files
+			const [combinedResponse, filtersResponse] = await Promise.all([
+				fetch('/data/processed/combined-data.json'),
+				fetch('/data/processed/filter-options.json')
+			]);
 
-			if (data) {
-				loadingStage = 'Processing evaluation data...';
-				// Use setTimeout to allow UI to update
-				await new Promise((resolve) => setTimeout(resolve, 10));
+			if (combinedResponse.ok && filtersResponse.ok) {
+				const [data, filters] = await Promise.all([
+					combinedResponse.json(),
+					filtersResponse.json()
+				]);
 
-				const { gradesData, evalParamsData, evalMediansData } = data;
-				console.log('Data loaded successfully');
-
-				loadingStage = 'Combining datasets...';
-				await new Promise((resolve) => setTimeout(resolve, 10));
-
-				combinedData = combineData(gradesData, evalParamsData, evalMediansData);
-				console.log('Data combined successfully');
-
-				loadingStage = 'Building filter options...';
-				await new Promise((resolve) => setTimeout(resolve, 10));
-
-				// Build filter options (no limits - autocomplete handles performance)
-				departments = getUniqueValues(combinedData, 'department');
-				years = getUniqueValues(combinedData, 'Academic_Year');
-				instructors = getUniqueValues(combinedData, 'Primary_Instructor');
-
-				loadingStage = 'Finalizing...';
-				await new Promise((resolve) => setTimeout(resolve, 10));
+				combinedData = data;
+				departments = filters.departments;
+				years = filters.years;
+				instructors = filters.instructors;
 
 				dataLoaded = true;
-				// Initial filter
 				updateFilteredData();
 			} else {
-				console.error('Failed to load data');
-				loadingStage = 'Error loading data';
+				throw new Error('Failed to load static data files');
 			}
 		} catch (error) {
-			console.error('Error in onMount:', error);
-			loadingStage = 'Error loading data';
+			console.error('Error loading static data, falling back to CSV parsing:', error);
+
+			try {
+				const { loadDataFromFiles } = await import('$lib/data/loadData');
+				const { combineData, getUniqueValues } = await import('$lib/utils/dataProcessor');
+
+				const data = await loadDataFromFiles();
+				if (data) {
+					const { gradesData, evalParamsData, evalMediansData } = data;
+					combinedData = combineData(gradesData, evalParamsData, evalMediansData);
+
+					departments = getUniqueValues(combinedData, 'department');
+					years = getUniqueValues(combinedData, 'Academic_Year');
+					instructors = getUniqueValues(combinedData, 'Primary_Instructor');
+
+					dataLoaded = true;
+					updateFilteredData();
+				}
+			} catch (fallbackError) {
+				console.error('Error in onMount:', error);
+			}
 		} finally {
 			isLoading = false;
 		}
@@ -82,13 +85,6 @@
 
 	function updateFilteredData() {
 		if (!dataLoaded || !combinedData.length) return;
-
-		console.log('Updating filtered data with:', {
-			department: selectedDepartment,
-			year: selectedYear,
-			instructor: selectedInstructor,
-			search: searchQuery
-		});
 
 		filteredData = filterData(combinedData, {
 			department: selectedDepartment,
@@ -98,8 +94,6 @@
 		});
 
 		stats = calculateStats(filteredData);
-		console.log('Stats updated:', stats);
-		console.log('Filtered data length:', filteredData.length);
 	}
 
 	// Reactive statements that trigger when filter values change
@@ -111,16 +105,6 @@
 			search: searchQuery
 		});
 		stats = calculateStats(filteredData);
-	}
-
-	// Additional reactive statement to log filter changes
-	$: if (selectedDepartment || selectedYear || selectedInstructor || searchQuery) {
-		console.log('Filter values changed:', {
-			selectedDepartment,
-			selectedYear,
-			selectedInstructor,
-			searchQuery
-		});
 	}
 </script>
 
@@ -150,23 +134,7 @@
 			<!-- Loading State -->
 			<div class="flex h-64 flex-col items-center justify-center">
 				<div class="mb-4 h-16 w-16 animate-spin rounded-full border-b-2 border-blue-600"></div>
-				<p class="text-lg text-gray-600">{loadingStage}</p>
-				<div class="mt-4 h-2 w-64 rounded-full bg-gray-200">
-					<div
-						class="h-2 rounded-full bg-blue-600 transition-all duration-300"
-						style="width: {loadingStage.includes('Initializing')
-							? '10%'
-							: loadingStage.includes('Loading')
-								? '25%'
-								: loadingStage.includes('Processing')
-									? '50%'
-									: loadingStage.includes('Combining')
-										? '75%'
-										: loadingStage.includes('Building')
-											? '90%'
-											: '100%'}"
-					></div>
-				</div>
+				<p class="text-lg text-gray-600">Loading course data...</p>
 			</div>
 		{:else if !dataLoaded}
 			<!-- Error State -->
