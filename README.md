@@ -1,38 +1,47 @@
-# sv
+# UW Course Analytics
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+![Course Table](images/Dashboard.png)
 
-## Creating a project
+A web application for analyzing University of Washington course grade distributions, student evaluation ratings, and enrollment statistics. All data obtained through Freedom of Information Act (FOIA) requests.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Features
 
-```bash
-# create a new project in the current directory
-npx sv create
+- **Interactive Data Visualization:** Scatter plots showing GPA vs. course rating correlations
+- **Grade Distribution Charts:** Visual breakdown of grade distributions across courses
+- **Advanced Filtering:** Search by course title/number, filter by department, year, or instructor
+- **Top Courses Table:** Rankings of courses by GPA with detailed statistics
+- **Course Detail Pages:** In-depth analysis of individual courses including instructor history
 
-# create a new project in my-app
-npx sv create my-app
-```
+## Screenshots
 
-## Developing
+![Course Table](images/Tables.png)
+![Course Table](images/CourseTable.png)
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Tech Stack
 
-```bash
-npm run dev
+- **Frontend:** SvelteKit 5 with TypeScript
+- **Styling:** Tailwind CSS 4
+- **Charts:** Chart.js for grade distributions, custom SVG for scatter plots
+- **Deployment:** Vercel
+- **Data Processing:** Custom CSV parser with build-time data transformation
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+## Data Sources
 
-## Building
+All data is publicly available information obtained through FOIA requests:
 
-To create a production version of your app:
+- Course grade distributions and enrollment numbers
+- Student course evaluation ratings (MedianGlobal scores)
+- Academic years covered: 2010-2016 (FOIA Request for 2016-2025 data pending)
+- Updated: 08/8/25
 
-```bash
-npm run build
-```
+## Contributing
 
-You can preview the production build with `npm run preview`.
+Contributions are welcome.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## License
+
+This project is open source and available under the MIT License.
+
+---
+
+**Live Site:** [UW Stats](https://uw-stats.vercel.app)
