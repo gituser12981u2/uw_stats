@@ -3,8 +3,7 @@
 	import { goto } from '$app/navigation';
 	import StatCard from '$lib/components/StatCard.svelte';
 	import GradeChart from '$lib/components/GradeChart.svelte';
-	import { loadDataFromFiles } from '$lib/data/loadData';
-	import { combineData } from '$lib/utils/dataProcessor';
+
 	import type { CombinedCourseData } from '$lib/types';
 
 	// Get slug from page parameters
@@ -20,42 +19,69 @@
 
 	onMount(async () => {
 		try {
-			const loadedData = await loadDataFromFiles();
-			if (loadedData) {
-				const { gradesData, evalParamsData, evalMediansData } = loadedData;
-				const combinedData = combineData(gradesData, evalParamsData, evalMediansData);
+			const combinedResponse = await fetch('/data/processed/combined-data.json');
+
+			if (!combinedResponse.ok) {
+				const combinedData: CombinedCourseData[] = await combinedResponse.json();
 
 				// Filter for this specific course
 				courseData = combinedData.filter(
 					(item) => item.department === department && item.courseNumber === courseNumber
 				);
+			} else {
+				const { loadDataFromFiles } = await import('$lib/data/loadData');
+				const { combineData } = await import('$lib/utils/dataProcessor');
 
-				console.log(`Found ${courseData.length} offerings for ${department} ${courseNumber}`);
+				const loadedData = await loadDataFromFiles();
+				if (loadedData) {
+					let combinedData: CombinedCourseData[];
 
-				if (courseData.length === 0) {
-					console.log('No data found for course:', department, courseNumber);
-				} else {
-					// Get course info from the first entry
-					const ratingsData = courseData.filter(
-						(d) => d.evalMedian?.MedianGlobal && d.evalMedian.MedianGlobal > 0
+					// Check if we got pre-processed data or need to combine CSV data
+					if (loadedData.combinedData) {
+						combinedData = loadedData.combinedData;
+					} else if (
+						loadedData.gradesData &&
+						loadedData.evalParamsData &&
+						loadedData.evalMediansData
+					) {
+						const { gradesData, evalParamsData, evalMediansData } = loadedData;
+						combinedData = combineData(gradesData, evalParamsData, evalMediansData);
+					} else {
+						throw new Error('No valid data loaded');
+					}
+
+					// Filter for this specific course
+					courseData = combinedData.filter(
+						(item) => item.department === department && item.courseNumber === courseNumber
 					);
-
-					courseInfo = {
-						title: courseData[0].Course_Title,
-						department: department,
-						number: courseNumber,
-						totalOfferings: courseData.length,
-						totalStudents: courseData.reduce((sum, d) => sum + (d.Student_Count || 0), 0),
-						averageGPA: courseData.reduce((sum, d) => sum + d.Average_GPA, 0) / courseData.length,
-						averageRating:
-							ratingsData.length > 0
-								? ratingsData.reduce((sum, d) => sum + (d.evalMedian?.MedianGlobal || 0), 0) /
-									ratingsData.length
-								: null
-					};
-
-					console.log('Course info calculated:', courseInfo);
 				}
+			}
+
+			console.log(`Found ${courseData.length} offerings for ${department} ${courseNumber}`);
+
+			if (courseData.length === 0) {
+				console.log('No data found for course:', department, courseNumber);
+			} else {
+				// Get course info from the first entry
+				const ratingsData = courseData.filter(
+					(d) => d.evalMedian?.MedianGlobal && d.evalMedian.MedianGlobal > 0
+				);
+
+				courseInfo = {
+					title: courseData[0].Course_Title,
+					department: department,
+					number: courseNumber,
+					totalOfferings: courseData.length,
+					totalStudents: courseData.reduce((sum, d) => sum + (d.Student_Count || 0), 0),
+					averageGPA: courseData.reduce((sum, d) => sum + d.Average_GPA, 0) / courseData.length,
+					averageRating:
+						ratingsData.length > 0
+							? ratingsData.reduce((sum, d) => sum + (d.evalMedian?.MedianGlobal || 0), 0) /
+								ratingsData.length
+							: null
+				};
+
+				console.log('Course info calculated:', courseInfo);
 			}
 		} catch (error) {
 			console.error('Error loading course data:', error);
