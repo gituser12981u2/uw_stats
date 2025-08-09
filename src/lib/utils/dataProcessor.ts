@@ -1,5 +1,27 @@
 import type { GradeData, EvalParam, EvalMedian, CombinedCourseData, CourseStats } from '../types';
 
+function extractDepartmentAndNumber(courseNumber: string): { department: string; number: string; section: string } {
+    const parts = courseNumber.trim().split(/\s+/);
+
+    const departmentParts: string[] = [];
+    let numberIndex = -1;
+
+    // Find the first part that starts with a number
+    for (let i = 0; i < parts.length; i++) {
+        if (/^\d/.test(parts[i])) {
+            numberIndex = i;
+            break;
+        }
+        departmentParts.push(parts[i]);
+    }
+
+    const department = departmentParts.join(' ');
+    const number = numberIndex >= 0 ? parts[numberIndex] : '';
+    const section = numberIndex >= 0 && parts[numberIndex + 1] ? parts[numberIndex + 1] : 'A';
+
+    return { department, number, section };
+}
+
 export function combineData(
     gradesData: GradeData[],
     evalParamsData: EvalParam[],
@@ -60,10 +82,7 @@ export function combineData(
 
     gradesData.forEach((grade, index) => {
         // Parse course information from grade data
-        const courseParts = grade.Course_Number.split(' ');
-        const dept = courseParts[0] || '';
-        const num = courseParts[1] || '';
-        const section = courseParts[2] || 'A';
+        const { department: dept, number: num, section } = extractDepartmentAndNumber(grade.Course_Number);
 
         // Extract instructor last name (assuming format "LAST, FIRST" or just "LAST")
         const instructorParts = grade.Primary_Instructor.split(',');
