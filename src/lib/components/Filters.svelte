@@ -15,21 +15,35 @@
 	let showDeptDropdown = false;
 	let showInstructorDropdown = false;
 
+	// Debounce handlers
+	let departmentTimeout: number;
+	let instructorTimeout: number;
+
 	// Element references
 	let deptDropdown: HTMLDivElement;
 	let instructorDropdown: HTMLDivElement;
 
 	// Configuration
 	const DROPDOWN_LIMIT = 20;
-	const SEARCH_DEBOUNCE_MS = 300;
+	const SEARCH_DEBOUNCE_MS = 150;
 
 	// Computed values
 	$: filteredDepartments = departments
-		.filter((dept) => dept.toLowerCase().includes(departmentSearch.toLowerCase()))
+		.filter((dept) => {
+			if (!departmentSearch || departmentSearch.length < 1) {
+				return true;
+			}
+			return dept.toLowerCase().includes(departmentSearch.toLowerCase());
+		})
 		.slice(0, DROPDOWN_LIMIT);
 
 	$: filteredInstructors = instructors
-		.filter((instructor) => instructor.toLowerCase().includes(instructorSearch.toLowerCase()))
+		.filter((instructor) => {
+			if (!instructorSearch || instructorSearch.length < 1) {
+				return true;
+			}
+			return instructor.toLowerCase().includes(instructorSearch.toLowerCase());
+		})
 		.slice(0, DROPDOWN_LIMIT);
 
 	// Sync internal search with selected values
@@ -90,6 +104,24 @@
 		searchTimeout = setTimeout(() => {
 			const target = event.target as HTMLInputElement;
 			searchQuery = target.value;
+		}, SEARCH_DEBOUNCE_MS);
+	}
+
+	function debouncedDepartmentSearch(event: Event) {
+		clearTimeout(departmentTimeout);
+		departmentTimeout = setTimeout(() => {
+			const target = event.target as HTMLInputElement;
+			departmentSearch = target.value;
+			showDeptDropdown = true;
+		}, SEARCH_DEBOUNCE_MS);
+	}
+
+	function debouncedInstructorSearch(event: Event) {
+		clearTimeout(instructorTimeout);
+		instructorTimeout = setTimeout(() => {
+			const target = event.target as HTMLInputElement;
+			instructorSearch = target.value;
+			showInstructorDropdown = true;
 		}, SEARCH_DEBOUNCE_MS);
 	}
 
@@ -165,7 +197,7 @@
 					placeholder="Search departments..."
 					disabled={isLoading}
 					bind:value={departmentSearch}
-					on:input={() => (showDeptDropdown = true)}
+					on:input={() => debouncedDepartmentSearch}
 					on:focus={() => (showDeptDropdown = true)}
 				/>
 
@@ -296,7 +328,7 @@
 					placeholder="Search instructors..."
 					disabled={isLoading}
 					bind:value={instructorSearch}
-					on:input={() => (showInstructorDropdown = true)}
+					on:input={() => debouncedInstructorSearch}
 					on:focus={() => (showInstructorDropdown = true)}
 				/>
 
