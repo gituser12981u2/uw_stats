@@ -321,7 +321,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each courseData.sort( (a, b) => `${a.Academic_Year}-${a.Term}`.localeCompare(`${b.Academic_Year}-${b.Term}`) ) as course (course.Academic_Year + course.Term + course.Primary_Instructor)}
+							{#each courseData.sort( (a, b) => `${a.Academic_Year}-${a.Term}`.localeCompare(`${b.Academic_Year}-${b.Term}`) ) as course (course.Academic_Year + course.Term + course.section + course.Primary_Instructor)}
 								<tr class="border-b border-gray-100 hover:bg-gray-50">
 									<td class="px-4 py-3 text-gray-600">{course.Academic_Year} {course.Term}</td>
 									<td class="px-4 py-3 text-gray-600">{course.Primary_Instructor}</td>
