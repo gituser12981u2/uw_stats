@@ -70,7 +70,7 @@
 					updateFilteredData();
 				}
 			} catch (fallbackError) {
-				console.error('Error in onMount:', error);
+				console.error('Error in onMount:', fallbackError);
 			}
 		} finally {
 			isLoading = false;
@@ -135,7 +135,7 @@
 			<div class="space-y-8">
 				<!-- Stats Grid Skeleton -->
 				<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-					{#each Array(4) as _}
+					{#each Array(4) as _, index (index)}
 						<div class="rounded-2xl border border-gray-100 bg-white p-8 shadow-lg">
 							<div
 								class="mb-4 h-1 animate-pulse rounded-full bg-gradient-to-r from-gray-200 to-gray-300"
@@ -161,7 +161,7 @@
 
 					<!-- Filter Pills Skeleton -->
 					<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-						{#each Array(3) as _}
+						{#each Array(3) as _, index (index)}
 							<div>
 								<div class="mb-2 h-4 w-20 animate-pulse rounded bg-gray-200"></div>
 								<div class="h-12 animate-pulse rounded-xl bg-gray-200"></div>
@@ -201,13 +201,13 @@
 					<div class="overflow-x-auto">
 						<!-- Table Header Skeleton -->
 						<div class="mb-4 grid grid-cols-6 gap-4 border-b-2 border-gray-200 pb-4">
-							{#each ['Course', 'Title', 'Offerings', 'Students', 'Avg GPA', 'Avg Rating'] as _}
+							{#each ['Course', 'Title', 'Offerings', 'Students', 'Avg GPA', 'Avg Rating'] as header (header)}
 								<div class="h-4 animate-pulse rounded bg-gray-200"></div>
 							{/each}
 						</div>
 
 						<!-- Table Rows Skeleton -->
-						{#each Array(10) as _}
+						{#each Array(10) as _, index (index)}
 							<div class="grid grid-cols-6 gap-4 border-b border-gray-100 py-4">
 								<div class="h-4 animate-pulse rounded bg-gray-200"></div>
 								<div class="h-4 animate-pulse rounded bg-gray-200"></div>

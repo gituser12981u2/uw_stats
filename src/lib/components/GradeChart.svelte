@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { onMount, afterUpdate } from 'svelte';
 	import type { CombinedCourseData } from '../types';
+	import type { Chart } from 'chart.js';
 
 	export let data: CombinedCourseData[] = [];
 
 	let canvas: HTMLCanvasElement;
-	let chart: any;
+	let chart: Chart | null = null;
 
 	onMount(async () => {
 		const Chart = (await import('chart.js/auto')).default;
@@ -18,7 +19,7 @@
 		}
 	});
 
-	async function renderChart(Chart: any) {
+	async function renderChart(Chart: typeof import('chart.js/auto').default) {
 		if (!canvas) return;
 
 		const ctx = canvas.getContext('2d');
