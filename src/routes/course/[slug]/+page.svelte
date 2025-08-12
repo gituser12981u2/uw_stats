@@ -11,7 +11,15 @@
 
 	let courseData: CombinedCourseData[] = [];
 	let loading = true;
-	let courseInfo: any = null;
+	let courseInfo: {
+		title: string;
+		department: string;
+		number: string;
+		totalOfferings: number;
+		totalStudents: number;
+		averageGPA: number;
+		averageRating: number | null;
+	} | null = null;
 
 	// Extract course info from URL slug (format: DEPT-NUMBER like CSE-142)
 	$: slug = data.slug;
@@ -256,7 +264,7 @@
 			<div class="mb-8 rounded-2xl border border-gray-100 bg-white p-8 shadow-lg">
 				<h3 class="mb-6 text-xl font-semibold text-gray-800">Grade Distribution</h3>
 				<div class="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
-					{#each getGradeDistribution() as { grade, count, percentage }}
+					{#each getGradeDistribution() as { grade, count, percentage } (grade)}
 						<div class="rounded-lg bg-gray-50 p-4 text-center">
 							<div class="text-lg font-bold text-gray-800">{grade}</div>
 							<div class="text-sm text-gray-600">{count} students</div>
@@ -281,7 +289,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each getInstructorStats() as instructor}
+							{#each getInstructorStats() as instructor (instructor.name)}
 								<tr class="border-b border-gray-100 hover:bg-gray-50">
 									<td class="px-4 py-3 font-medium text-gray-800">{instructor.name}</td>
 									<td class="px-4 py-3 text-gray-600">{instructor.offerings}</td>
@@ -313,7 +321,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each courseData.sort( (a, b) => `${a.Academic_Year}-${a.Term}`.localeCompare(`${b.Academic_Year}-${b.Term}`) ) as course}
+							{#each courseData.sort( (a, b) => `${a.Academic_Year}-${a.Term}`.localeCompare(`${b.Academic_Year}-${b.Term}`) ) as course (course.Academic_Year + course.Term + course.section + course.Primary_Instructor)}
 								<tr class="border-b border-gray-100 hover:bg-gray-50">
 									<td class="px-4 py-3 text-gray-600">{course.Academic_Year} {course.Term}</td>
 									<td class="px-4 py-3 text-gray-600">{course.Primary_Instructor}</td>

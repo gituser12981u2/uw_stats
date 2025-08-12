@@ -84,6 +84,7 @@
 		const chartData = processDataForChart();
 
 		if (chartData.length === 0) {
+			/* eslint-disable svelte/no-dom-manipulating */
 			chartContainer.innerHTML = `
         <div class="flex items-center justify-center h-64 text-gray-500">
           <p>No data available for visualization</p>
@@ -154,7 +155,7 @@
 		}
 
 		// Create data points
-		chartData.forEach((d, i) => {
+		chartData.forEach((d) => {
 			const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
 			circle.setAttribute('cx', xScale(d.x).toString());
 			circle.setAttribute('cy', yScale(d.y).toString());

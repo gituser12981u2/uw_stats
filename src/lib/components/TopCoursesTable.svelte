@@ -93,7 +93,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each getTopCourses() as course, index}
+					{#each getTopCourses() as course (course.department + course.courseNumber)}
 						<tr class="border-b border-gray-100 transition-colors hover:bg-gray-50">
 							<td class="px-4 py-4">
 								<a
