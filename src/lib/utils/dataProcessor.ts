@@ -199,7 +199,7 @@ export function calculateStats(data: CombinedCourseData[]): CourseStats {
 		avgRating:
 			validRating.length > 0
 				? validRating.reduce((sum, d) => sum + (d.evalMedian?.MedianGlobal || 0), 0) /
-				validRating.length
+					validRating.length
 				: 0,
 		totalStudents: data.reduce((sum, d) => sum + (d.Student_Count || 0), 0)
 	};
