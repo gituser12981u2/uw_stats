@@ -32,7 +32,7 @@ export async function loadDataFromFiles() {
 	} catch (error) {
 		console.error('Error loading CSV files:', error);
 		// Fallback to loading from CSV files if the processed data is not available
-		return await loadDataFromCSVFiles();
+		return await loadDataFromCSVFiles(); 
 	}
 }
 

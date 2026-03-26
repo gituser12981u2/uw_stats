@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, afterUpdate } from 'svelte';
+	import { onMount } from 'svelte';
 	import type { CombinedCourseData } from '../types';
 	import type { Chart } from 'chart.js';
 
@@ -13,11 +13,17 @@
 		renderChart(Chart);
 	});
 
-	afterUpdate(() => {
-		if (chart) {
-			updateChart();
-		}
-	});
+	// afterUpdate(() => {
+	// 	if (chart) {
+	// 		updateChart();
+	// 	}
+	// });
+
+	$: if (chart) {
+		const gradeData = calculateGradeData();
+		chart.data.datasets[0].data = Object.values(gradeData);
+		chart.update();
+	}
 
 	async function renderChart(Chart: typeof import('chart.js/auto').default) {
 		if (!canvas) return;
@@ -95,13 +101,13 @@
 		};
 	}
 
-	function updateChart() {
-		if (!chart) return;
+	// function updateChart() {
+	// 	if (!chart) return;
 
-		const gradeData = calculateGradeData();
-		chart.data.datasets[0].data = Object.values(gradeData);
-		chart.update();
-	}
+	// 	const gradeData = calculateGradeData();
+	// 	chart.data.datasets[0].data = Object.values(gradeData);
+	// 	chart.update();
+	// }
 </script>
 
 <div class="rounded-2xl border border-gray-100 bg-white p-8 shadow-lg">

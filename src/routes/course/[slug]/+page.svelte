@@ -5,13 +5,15 @@
 	import GradeChart from '$lib/components/GradeChart.svelte';
 
 	import type { CombinedCourseData } from '$lib/types';
+	import { resolve } from '$app/paths';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	// Get slug from page parameters
 	export let data: { slug: string };
 
 	let courseData: CombinedCourseData[] = [];
 	let loading = true;
-	let courseInfo: {
+	type CourseInfo = {
 		title: string;
 		department: string;
 		number: string;
@@ -19,17 +21,37 @@
 		totalStudents: number;
 		averageGPA: number;
 		averageRating: number | null;
-	} | null = null;
+	};
 
 	// Extract course info from URL slug (format: DEPT-NUMBER like CSE-142)
 	$: slug = data.slug;
 	$: [department, courseNumber] = slug ? slug.split('-') : ['', ''];
 
+	function computeCourseInfo(data: CombinedCourseData[], department: string, courseNumber: string): CourseInfo | null {
+		if (!data.length) return null;
+
+		const ratingsData = data.filter(
+			(d) => d.evalMedian?.MedianGlobal && d.evalMedian.MedianGlobal > 0
+		);
+
+		return {
+			title: data[0].Course_Title,
+			department,
+			number: courseNumber,
+			totalOfferings: data.length,
+			totalStudents: data.reduce((sum, d) => sum + (d.Student_Count || 0), 0),
+			averageGPA: data.reduce((sum, d) => sum + d.Average_GPA, 0) / data.length,
+			averageRating: ratingsData.length > 0 ? ratingsData.reduce((sum, d) => sum + (d.evalMedian?.MedianGlobal || 0), 0) / ratingsData.length : null
+		};
+	}
+
+	$: courseInfo = computeCourseInfo(courseData, department, courseNumber);
+
 	onMount(async () => {
 		try {
 			const combinedResponse = await fetch('/data/processed/combined-data.json');
 
-			if (!combinedResponse.ok) {
+			if (combinedResponse.ok) {
 				const combinedData: CombinedCourseData[] = await combinedResponse.json();
 
 				// Filter for this specific course
@@ -65,32 +87,28 @@
 				}
 			}
 
-			console.log(`Found ${courseData.length} offerings for ${department} ${courseNumber}`);
+			// if (courseData.length === 0) {
+			// 	console.log('No data found for course:', department, courseNumber);
+			// } else {
+			// 	// Get course info from the first entry
+			// 	const ratingsData = courseData.filter(
+			// 		(d) => d.evalMedian?.MedianGlobal && d.evalMedian.MedianGlobal > 0
+			// 	);
 
-			if (courseData.length === 0) {
-				console.log('No data found for course:', department, courseNumber);
-			} else {
-				// Get course info from the first entry
-				const ratingsData = courseData.filter(
-					(d) => d.evalMedian?.MedianGlobal && d.evalMedian.MedianGlobal > 0
-				);
-
-				courseInfo = {
-					title: courseData[0].Course_Title,
-					department: department,
-					number: courseNumber,
-					totalOfferings: courseData.length,
-					totalStudents: courseData.reduce((sum, d) => sum + (d.Student_Count || 0), 0),
-					averageGPA: courseData.reduce((sum, d) => sum + d.Average_GPA, 0) / courseData.length,
-					averageRating:
-						ratingsData.length > 0
-							? ratingsData.reduce((sum, d) => sum + (d.evalMedian?.MedianGlobal || 0), 0) /
-								ratingsData.length
-							: null
-				};
-
-				console.log('Course info calculated:', courseInfo);
-			}
+			// 	courseInfo = {
+			// 		title: courseData[0].Course_Title,
+			// 		department: department,
+			// 		number: courseNumber,
+			// 		totalOfferings: courseData.length,
+			// 		totalStudents: courseData.reduce((sum, d) => sum + (d.Student_Count || 0), 0),
+			// 		averageGPA: courseData.reduce((sum, d) => sum + d.Average_GPA, 0) / courseData.length,
+			// 		averageRating:
+			// 			ratingsData.length > 0
+			// 				? ratingsData.reduce((sum, d) => sum + (d.evalMedian?.MedianGlobal || 0), 0) /
+			// 					ratingsData.length
+			// 				: null
+			// 	};
+			// }
 		} catch (error) {
 			console.error('Error loading course data:', error);
 		} finally {
@@ -99,13 +117,29 @@
 	});
 
 	function goBack() {
-		goto('/');
+		goto(resolve('/'));
 	}
 
-	function getGradeDistribution() {
-		if (!courseData.length) return [];
+	type GradeDistributionItem = {
+		grade: string;
+		count: number,
+		percentage: number;
+	};
 
-		const totalGrades = courseData.reduce(
+	type InstructorStat = {
+		name: string;
+		offerings: number;
+		totalStudents: number;
+		totalGPA: number;
+		ratings:number[];
+		averageGPA: number;
+		averageRating: number | null;
+	}
+
+	function computeGradeDistribution(data: CombinedCourseData[]): GradeDistributionItem[] {
+		if (!data.length) return [];
+
+		const totalGrades = data.reduce(
 			(acc, course) => {
 				acc.A += course.A || 0;
 				acc['A-'] += course['A-'] || 0;
@@ -146,12 +180,22 @@
 		}));
 	}
 
-	function getInstructorStats() {
+	function computeInstructorStats(data: CombinedCourseData[]): InstructorStat[] {
 		if (!courseData.length) return [];
 
-		const instructorMap = new Map();
+		// eslint-disable-nxt-line svelte/prefer-svelte-reactivity
+		const instructorMap = new SvelteMap<
+				string,
+				{
+					name: string;
+					offerings: number;
+					totalStudents: number;
+					totalGPA: number;
+					ratings: number[];
+				}
+			>();
 
-		courseData.forEach((course) => {
+		data.forEach((course) => {
 			const instructor = course.Primary_Instructor;
 			if (!instructorMap.has(instructor)) {
 				instructorMap.set(instructor, {
@@ -163,7 +207,7 @@
 				});
 			}
 
-			const stats = instructorMap.get(instructor);
+			const stats = instructorMap.get(instructor)!;
 			stats.offerings++;
 			stats.totalStudents += course.Student_Count || 0;
 			stats.totalGPA += course.Average_GPA;
@@ -184,6 +228,9 @@
 			}))
 			.sort((a, b) => b.offerings - a.offerings);
 	}
+
+	$: gradeDistribution = computeGradeDistribution(courseData);
+	$: instructorStats = computeInstructorStats(courseData);
 </script>
 
 <svelte:head>
@@ -264,7 +311,7 @@
 			<div class="mb-8 rounded-2xl border border-gray-100 bg-white p-8 shadow-lg">
 				<h3 class="mb-6 text-xl font-semibold text-gray-800">Grade Distribution</h3>
 				<div class="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
-					{#each getGradeDistribution() as { grade, count, percentage } (grade)}
+					{#each gradeDistribution as { grade, count, percentage } (grade)}
 						<div class="rounded-lg bg-gray-50 p-4 text-center">
 							<div class="text-lg font-bold text-gray-800">{grade}</div>
 							<div class="text-sm text-gray-600">{count} students</div>
@@ -289,7 +336,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each getInstructorStats() as instructor (instructor.name)}
+							{#each instructorStats as instructor (instructor.name)}
 								<tr class="border-b border-gray-100 hover:bg-gray-50">
 									<td class="px-4 py-3 font-medium text-gray-800">{instructor.name}</td>
 									<td class="px-4 py-3 text-gray-600">{instructor.offerings}</td>
@@ -321,7 +368,8 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each courseData.sort( (a, b) => `${a.Academic_Year}-${a.Term}`.localeCompare(`${b.Academic_Year}-${b.Term}`) ) as course (course.Academic_Year + course.Term + course.section + course.Primary_Instructor)}
+							{#each [...courseData].sort( (a, b) => `${a.Academic_Year}-${a.Term}`.localeCompare(`${b.Academic_Year}-${b.Term}`) 
+							) as course (course.Academic_Year + course.Term + course.section + course.Primary_Instructor)}
 								<tr class="border-b border-gray-100 hover:bg-gray-50">
 									<td class="px-4 py-3 text-gray-600">{course.Academic_Year} {course.Term}</td>
 									<td class="px-4 py-3 text-gray-600">{course.Primary_Instructor}</td>

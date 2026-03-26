@@ -16,11 +16,13 @@
 	let years: string[] = [];
 	let instructors: string[] = [];
 
-	// Filter state - these will be bound to the Filters component
+	// Filter state
 	let selectedDepartment = '';
 	let selectedYear = '';
 	let selectedInstructor = '';
 	let searchQuery = '';
+
+	$: hasActiveFilters = !!selectedDepartment || !!selectedYear || !!selectedInstructor || !!searchQuery.trim();
 
 	// Loading states
 	let isLoading = true;
@@ -28,7 +30,6 @@
 
 	onMount(async () => {
 		try {
-			// Load from static JSON files
 			const [combinedResponse, filtersResponse] = await Promise.all([
 				fetch('/data/processed/combined-data.json'),
 				fetch('/data/processed/filter-options.json')
@@ -281,7 +282,11 @@
 			</div>
 
 			<!-- Top Courses Table -->
-			<TopCoursesTable data={filteredData} />
+			<TopCoursesTable 
+				data={filteredData} 
+				{hasActiveFilters}
+				// {searchQuery}
+			/>
 		{/if}
 	</div>
 </div>

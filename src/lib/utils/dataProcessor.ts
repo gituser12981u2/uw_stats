@@ -187,21 +187,37 @@ export function combineData(
 	return combined;
 }
 export function calculateStats(data: CombinedCourseData[]): CourseStats {
-	const validGPA = data.filter((d) => d.Average_GPA > 0);
-	const validRating = data.filter((d) => d.evalMedian && d.evalMedian.MedianGlobal > 0);
+	let totalStudents = 0;
+	let gpaSum = 0;
+	let gpaCount = 0;
+	let ratingSum = 0;
+	let ratingCount = 0;
+
+	for (const d of data) {
+		totalStudents += d.Student_Count || 0;
+
+		if (d.Average_GPA > 0) {
+			gpaSum += d.Average_GPA;
+			gpaCount++;
+		}
+
+		if (d.evalMedian?.MedianGlobal && d.evalMedian.MedianGlobal > 0) {
+			ratingSum = d.evalMedian.MedianGlobal;
+			ratingCount++;
+		}
+	}
 
 	return {
 		totalCourses: data.length,
 		avgGPA:
-			validGPA.length > 0
-				? validGPA.reduce((sum, d) => sum + d.Average_GPA, 0) / validGPA.length
+			gpaCount > 0
+				? gpaSum / gpaCount
 				: 0,
 		avgRating:
-			validRating.length > 0
-				? validRating.reduce((sum, d) => sum + (d.evalMedian?.MedianGlobal || 0), 0) /
-					validRating.length
+			ratingCount > 0
+				? ratingSum / ratingCount
 				: 0,
-		totalStudents: data.reduce((sum, d) => sum + (d.Student_Count || 0), 0)
+		totalStudents
 	};
 }
 

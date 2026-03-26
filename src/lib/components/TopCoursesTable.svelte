@@ -1,11 +1,33 @@
 <script lang="ts">
-	import type { CombinedCourseData } from '$lib/types';
+	import { resolve } from '$app/paths';
+import type { CombinedCourseData } from '$lib/types';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	export let data: CombinedCourseData[] = [];
+	export let hasActiveFilters = false;
+
+	$: tableTitle = hasActiveFilters ? 'Matching Courses' : 'Top Courses by GPA';
+
+	$: tableDescription = hasActiveFilters
+		? 'Showing courses matching your current search and filters'
+		: 'Showing top 20 courses with 2+ offerings, sorted by average GPA';
+
+	type TopCourse = {
+				department: string;
+				courseNumber: string;
+				title: string;
+				totalOfferings: number;
+				totalStudents: number;
+				averageGPA: number;
+				averageRating: number | null;
+				gpaSum: number;
+				ratingSum: number;
+				ratingCount: number;
+	};
 
 	// Group courses by course number and calculate averages
-	function getTopCourses() {
-		const courseMap = new Map<
+	function computeTopCourses(data: CombinedCourseData[]): TopCourse[] {
+		const courseMap = new SvelteMap<
 			string,
 			{
 				department: string;
@@ -61,7 +83,11 @@
 		return courses
 			.filter((course) => course.totalOfferings >= 2) // Only show courses with multiple offerings
 			.sort((a, b) => {
-				if (Math.abs(a.averageGPA - b.averageGPA) < 0.1) {
+				if (b.averageGPA !== a.averageGPA) {
+					return b.averageGPA - a.averageGPA;
+				}
+
+				if (b.totalOfferings !== a.totalOfferings) {
 					return b.totalOfferings - a.totalOfferings;
 				}
 				return b.averageGPA - a.averageGPA;
@@ -69,13 +95,16 @@
 			.slice(0, 20);
 	}
 
+	$: topCourses = computeTopCourses(data);
+
 	function getCourseSlug(department: string, courseNumber: string) {
 		return `${department}-${courseNumber}`;
 	}
+
 </script>
 
-<div class="rounded-2xl border border-gray-100 bg-white p-8 shadow-lg">
-	<h3 class="mb-6 text-xl font-semibold text-gray-800">Top Courses by GPA</h3>
+<div class="rounded-2xl border border-gray-100 bg-white p-8 shadow-lg transition-all duration-300">
+	<h3 class="mb-2 text-xl font-semibold text-gray-800">{tableTitle}</h3>
 
 	{#if data.length === 0}
 		<p class="py-8 text-center text-gray-500">No course data available.</p>
@@ -93,11 +122,13 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each getTopCourses() as course (course.department + course.courseNumber)}
+					{#each topCourses as course (course.department + course.courseNumber)}
 						<tr class="border-b border-gray-100 transition-colors hover:bg-gray-50">
 							<td class="px-4 py-4">
 								<a
-									href="/course/{getCourseSlug(course.department, course.courseNumber)}"
+									href = {resolve('/course/[slug]', {
+										slug: getCourseSlug(course.department, course.courseNumber)
+									})}
 									class="font-medium text-blue-600 transition-colors hover:text-blue-800 hover:underline"
 								>
 									{course.department}
@@ -127,8 +158,6 @@
 			</table>
 		</div>
 
-		<div class="mt-4 text-center text-sm text-gray-500">
-			Showing top 20 courses with 2+ offerings, sorted by average GPA
-		</div>
+		<p class="mt-4 text-center text-sm text-gray-500">{tableDescription}</p>
 	{/if}
 </div>

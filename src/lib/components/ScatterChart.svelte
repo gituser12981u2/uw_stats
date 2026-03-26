@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { CombinedCourseData } from '$lib/types';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	export let data: CombinedCourseData[] = [];
 
@@ -29,7 +30,7 @@
 			}));
 		} else {
 			// Aggregate by course (multiple offerings become one point)
-			const courseMap = new Map<
+			const courseMap = new SvelteMap<
 				string,
 				{
 					gpaSum: number;

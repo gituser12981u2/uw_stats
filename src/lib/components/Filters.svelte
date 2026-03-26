@@ -197,7 +197,7 @@
 					placeholder="Search departments..."
 					disabled={isLoading}
 					bind:value={departmentSearch}
-					on:input={() => debouncedDepartmentSearch}
+					on:input={debouncedDepartmentSearch}
 					on:focus={() => (showDeptDropdown = true)}
 				/>
 
@@ -328,7 +328,7 @@
 					placeholder="Search instructors..."
 					disabled={isLoading}
 					bind:value={instructorSearch}
-					on:input={() => debouncedInstructorSearch}
+					on:input={debouncedInstructorSearch}
 					on:focus={() => (showInstructorDropdown = true)}
 				/>
 
