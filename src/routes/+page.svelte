@@ -236,58 +236,56 @@
 	<meta property="og:type" content="website" />
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-	<div class="container mx-auto px-4 py-8">
-		<div class="mb-12 text-center">
-			<h1
-				class="mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-5xl font-bold text-transparent"
-			>
-				UW Course Analytics
-			</h1>
-			<p class="text-xl font-light text-gray-600">
-				Analysis of course grades and student evaluations
-			</p>
-		</div>
-
-		<div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-			<StatCard
-				value={stats.totalCourses}
-				label={hasActiveFilters ? 'Matching Courses' : 'Total Courses'}
-				gradient="from-blue-500 to-blue-600"
-			/>
-			<StatCard
-				value={stats.avgGPA.toFixed(2)}
-				label="Average GPA"
-				gradient="from-green-500 to-green-600"
-			/>
-			<StatCard
-				value={stats.avgRating.toFixed(2)}
-				label="Average Rating"
-				gradient="from-yellow-500 to-orange-500"
-			/>
-			<StatCard
-				value={stats.totalStudents.toLocaleString()}
-				label={hasActiveFilters ? 'Students in Results' : 'Total Students'}
-				gradient="from-purple-500 to-purple-600"
-			/>
-		</div>
-
-		<Filters
-			bind:selectedDepartment
-			bind:selectedYear
-			bind:selectedInstructor
-			bind:searchQuery
-			{departments}
-			{years}
-			{instructors}
-			isLoading={false}
-		/>
-
-		<div class="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-			<ScatterChart data={courses} />
-			<GradeChart data={gradeDistribution} />
-		</div>
-
-		<TopCoursesTable data={courses} {hasActiveFilters} />
+<div class="container mx-auto px-4 py-8">
+	<div class="mb-12 text-center">
+		<h1
+			class="mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text pb-1 text-5xl font-bold leading-tight text-transparent"
+		>
+			UW Course Analytics
+		</h1>
+		<p class="text-xl font-light text-gray-600">
+			Analysis of course grades and student evaluations
+		</p>
 	</div>
+
+	<div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+		<StatCard
+			value={stats.totalCourses}
+			label={hasActiveFilters ? 'Matching Courses' : 'Total Courses'}
+			gradient="from-blue-500 to-blue-600"
+		/>
+		<StatCard
+			value={stats.avgGPA.toFixed(2)}
+			label="Average GPA"
+			gradient="from-green-500 to-green-600"
+		/>
+		<StatCard
+			value={stats.avgRating.toFixed(2)}
+			label="Average Rating"
+			gradient="from-yellow-500 to-orange-500"
+		/>
+		<StatCard
+			value={stats.totalStudents.toLocaleString()}
+			label={hasActiveFilters ? 'Students in Results' : 'Total Students'}
+			gradient="from-purple-500 to-purple-600"
+		/>
+	</div>
+
+	<Filters
+		bind:selectedDepartment
+		bind:selectedYear
+		bind:selectedInstructor
+		bind:searchQuery
+		{departments}
+		{years}
+		{instructors}
+		isLoading={false}
+	/>
+
+	<div class="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
+		<ScatterChart data={courses} />
+		<GradeChart data={gradeDistribution} />
+	</div>
+
+	<TopCoursesTable data={courses} {hasActiveFilters} />
 </div>
