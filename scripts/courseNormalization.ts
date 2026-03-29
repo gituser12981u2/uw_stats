@@ -46,7 +46,6 @@ export function normalizeSearchText(...parts: Array<string | null | undefined>):
 		.trim();
 }
 
-
 export function normalizeInstructorName(raw: string | null | undefined): NormalizedInstructor {
 	if (raw == null) {
 		return { displayName: null, key: null };
@@ -75,4 +74,3 @@ export function normalizeInstructorName(raw: string | null | undefined): Normali
 
 	return { displayName, key: key || null };
 }
-

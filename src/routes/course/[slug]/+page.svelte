@@ -56,7 +56,6 @@
 		<button
 			onclick={goBack}
 			class="mb-4 inline-flex items-center gap-2 rounded-lg px-3 py-2 text-blue-600 transition-all hover:bg-blue-100 hover:text-blue-900 active:scale-[0.98]"
-
 		>
 			← Back to Search
 		</button>

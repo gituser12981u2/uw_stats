@@ -3,7 +3,7 @@
 	import ScatterChart from '$lib/components/ScatterChart.svelte';
 	import GradeChart from '$lib/components/GradeChart.svelte';
 	import TopCoursesTable from '$lib/components/TopCoursesTable.svelte';
-	import Filters from '$lib/components/Filters.svelte';
+	import Filters from '$lib/components/filters/Filters.svelte';
 	import type {
 		CourseIndexEntry,
 		CourseStats,
@@ -239,7 +239,7 @@
 <div class="container mx-auto px-4 py-8">
 	<div class="mb-12 text-center">
 		<h1
-			class="mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text pb-1 text-5xl font-bold leading-tight text-transparent"
+			class="mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text pb-1 text-5xl leading-tight font-bold text-transparent"
 		>
 			UW Course Analytics
 		</h1>

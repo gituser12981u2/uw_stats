@@ -11,8 +11,8 @@ import {
 	computeGradeDistribution,
 	computeInstructorStats,
 	sanitizeDepartmentKey,
-    sortAcademicYears,
-    uniqueSorted
+	sortAcademicYears,
+	uniqueSorted
 } from './courseAggregates';
 import { normalizeSearchText } from './courseNormalization';
 
