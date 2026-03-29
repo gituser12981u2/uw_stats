@@ -44,13 +44,12 @@ export function parseCSV(csvText: string): RawCSVRow[] {
 			data.push(row);
 		} catch (error) {
 			errors.push(`Line ${i + 1}: ${error instanceof Error ? error.message : 'Parse error'}`);
-			// Continue parsing other lines
 		}
 	}
 
 	if (errors.length > 0 && errors.length > data.length * 0.1) {
-		// If more than 10% of lines have errors, something is seriously wrong
-		console.warn('CSV parsing errors:', errors.slice(0, 5)); // Log first 5 errors
+		// If more than 10% of lines have errors then something is likely wrong
+		console.warn('CSV parsing errors:', errors.slice(0, 5));
 		throw new Error(`Too many parsing errors (${errors.length}). First error: ${errors[0]}`);
 	}
 
@@ -90,7 +89,6 @@ function parseCSVLine(line: string): string[] {
 				i++;
 			}
 		} else if (char === ',' && !inQuotes) {
-			// Field separator
 			result.push(current);
 			current = '';
 			i++;
@@ -100,7 +98,6 @@ function parseCSVLine(line: string): string[] {
 		}
 	}
 
-	// Add the last field
 	result.push(current);
 	return result;
 }
@@ -113,10 +110,8 @@ function convertValue(value: string): string | number | '' {
 		return '';
 	}
 
-	// Try to convert to number
 	if (value !== '' && !isNaN(Number(value)) && !isNaN(parseFloat(value))) {
 		const num = parseFloat(value);
-		// Check if it's an integer
 		if (Number.isInteger(num)) {
 			return parseInt(value, 10);
 		}
@@ -141,7 +136,7 @@ export function transformGradeData(rawData: RawCSVRow[]): GradeData[] {
 				Term: safeString(row.Term, ''),
 				Course_Number: safeString(row.Course_Number, ''),
 				Course_Title: safeString(row.Course_Title, ''),
-				Primary_Instructor: safeString(row.Primary_Instructor, ''),
+				Primary_Instructor: safeNullableString(row.Primary_Instructor),
 				Student_Count: safeNumber(row.Student_Count, 0),
 				A: safeNumber(row.A, 0),
 				'A-': safeNumber(row['A-'], 0),
@@ -267,6 +262,15 @@ function safeString(value: unknown, fallback: string = ''): string {
 		return fallback;
 	}
 	return String(value).trim();
+}
+
+function safeNullableString(value: unknown): string | null {
+	if (value === null || value === undefined) {
+		return null;
+	}
+
+	const trimmed = String(value).trim();
+	return trimmed.length > 0 ? trimmed : null;
 }
 
 /**

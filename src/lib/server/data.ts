@@ -11,8 +11,8 @@ import courseDepartmentManifest from '$lib/server/generated/course-department-ma
 
 const GRADE_ORDER = ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'] as const;
 
-const typedCoursesIndex = coursesIndex as CourseIndexEntry[]
-const typedManifest = courseDepartmentManifest as CoursesDepartmentManifest; 
+const typedCoursesIndex = coursesIndex as CourseIndexEntry[];
+const typedManifest = courseDepartmentManifest as CoursesDepartmentManifest;
 
 const departmentModules = import.meta.glob('$lib/server/generated/courses-by-department/*.json', {
 	import: 'default'
@@ -22,7 +22,7 @@ const departmentCache = new Map<string, DepartmentCoursesFile>();
 
 export async function getCoursesIndex(): Promise<CourseIndexEntry[]> {
 	return typedCoursesIndex;
-} 
+}
 
 async function getManifest(): Promise<CoursesDepartmentManifest> {
 	return typedManifest;
