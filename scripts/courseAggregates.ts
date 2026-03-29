@@ -6,7 +6,20 @@ import type {
 } from '../src/lib/types';
 import { normalizeInstructorName } from './courseNormalization';
 
-export const GRADE_KEYS = ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'] as const;
+export const GRADE_KEYS = [
+	'A',
+	'A-',
+	'B+',
+	'B',
+	'B-',
+	'C+',
+	'C',
+	'C-',
+	'D+',
+	'D',
+	'D-',
+	'F'
+] as const;
 
 export function uniqueSorted(values: Iterable<string>): string[] {
 	return Array.from(new Set(Array.from(values).filter((v) => v.trim().length > 0))).sort((a, b) =>
@@ -32,7 +45,7 @@ export function collectInstructorNames(data: CombinedCourseData[]): string[] {
 		data
 			.map((item) => item.Primary_Instructor)
 			.filter((name): name is string => typeof name === 'string' && name.trim().length > 0)
-	)
+	);
 }
 
 export function computeAverageRating(data: CombinedCourseData[]): number | null {
