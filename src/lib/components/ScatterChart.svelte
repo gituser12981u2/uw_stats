@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import type { CourseIndexEntry } from '$lib/types';
 	import type { Chart } from 'chart.js';
+	import { _isClickEvent } from 'chart.js/helpers';
 	import { onMount } from 'svelte';
 
 	let {
@@ -19,6 +22,7 @@
 	type ScatterPoint = {
 		x: number;
 		y: number;
+		slug: string;
 		courseCode: string;
 		title: string;
 		totalStudents: number;
@@ -36,6 +40,7 @@
 						typeof course.averageRating === 'number' && course.averageRating > 0
 							? course.averageRating
 							: 0,
+					slug: course.slug,
 					courseCode: course.courseCode,
 					title: course.title,
 					totalStudents: course.totalStudents,
@@ -88,6 +93,10 @@
 		chart.update();
 	});
 
+	async function navigateToCourse(slug: string) {
+		await goto(resolve(`/course/${slug}`));
+	}
+
 	function renderChart(ChartCtor: typeof import('chart.js/auto').default) {
 		if (!canvas) return;
 
@@ -122,6 +131,24 @@
 			options: {
 				responsive: true,
 				maintainAspectRatio: false,
+				onClick: async (_event, elements, chartInstance) => {
+					const first = elements[0];
+					if (!first) return;
+
+					const point = chartInstance.data.datasets[first.datasetIndex].data[
+						first.index
+					] as ScatterPoint | undefined;
+
+					if (!point) return;
+
+					await navigateToCourse(point.slug);
+				},
+				onHover: (event, elements) => {
+					const target = event.native?.target;
+					if (target instanceof HTMLCanvasElement) {
+						target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+					}
+				},
 				plugins: {
 					legend: {
 						display: false

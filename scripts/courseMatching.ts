@@ -83,13 +83,13 @@ function extractInstructorNameParts(name: string | null): {
 
 function buildEvalLookupKeys(param: EvalParam): string[] {
 	return [
-		// Primary: Term-Year-CourseAbbrev-CourseNumber-LastName-FirstName
+		// Primary
 		`${param.Term}-${param.Year}-${param.CourseAbbrev}-${param.CourseNumber}-${param.LastName}-${param.FirstName}`,
-		// Secondary: Term-Year-CourseAbbrev-CourseNumber-LastName (no first name)
+		// Secondary
 		`${param.Term}-${param.Year}-${param.CourseAbbrev}-${param.CourseNumber}-${param.LastName}`,
-		// Tertiary: Course and instructor last name
+		// Tertiary
 		`${param.CourseAbbrev}-${param.CourseNumber}-${param.LastName}`,
-		// Quaternary: Course only
+		// Quaternary
 		`${param.CourseAbbrev}-${param.CourseNumber}`
 	];
 }
