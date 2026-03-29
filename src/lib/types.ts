@@ -85,3 +85,78 @@ export interface CourseStats {
 	avgRating: number;
 	totalStudents: number;
 }
+
+export type CourseIndexEntry = {
+	slug: string;
+	department: string;
+	courseNumber: string;
+	courseCode: string;
+	title: string;
+	searchText: string;
+	totalOfferings: number;
+	totalStudents: number;
+	averageGPA: number;
+	averageRating: number | null;
+	gradeDistribution: GradeDistributionItem[];
+	years: string[];
+	instructors: string[];
+};
+
+export type CoursesSearchResponse = {
+	courses: CourseIndexEntry[];
+	gradeDistribution: GradeDistributionItem[];
+};
+
+export type FilterOptions = {
+	departments: string[];
+	years: string[];
+	instructors: string[];
+};
+
+export type GradeDistributionItem = {
+	grade: string;
+	count: number;
+	percentage: number;
+};
+
+export type InstructorStat = {
+	name: string;
+	offerings: number;
+	totalStudents: number;
+	averageGPA: number;
+	averageRating: number | null;
+};
+
+export type CourseDetailPayload = {
+	slug: string;
+	department: string;
+	courseNumber: string;
+	courseCode: string;
+	title: string;
+	summary: {
+		totalOfferings: number;
+		totalStudents: number;
+		averageGPA: number;
+		averageRating: number | null;
+		years: string[];
+		instructors: string[];
+	};
+	gradeDistribution: GradeDistributionItem[];
+	instructorStats: InstructorStat[];
+	offerings: CombinedCourseData[];
+};
+
+export type DepartmentCoursesFile = Record<string, CourseDetailPayload>;
+export type CoursesDepartmentManifest = Record<string, string>;
+
+export type HomePageData = {
+	filterOptions: FilterOptions;
+	courses: CourseIndexEntry[];
+	gradeDistribution: GradeDistributionItem[];
+	filters: {
+		search: string;
+		department: string;
+		year: string;
+		instructor: string;
+	};
+};
