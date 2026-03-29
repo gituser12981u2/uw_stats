@@ -1,4 +1,3 @@
-import { read } from '$app/server';
 import type {
 	CourseDetailPayload,
 	CourseIndexEntry,
@@ -7,48 +6,26 @@ import type {
 	GradeDistributionItem
 } from '$lib/types';
 
+import coursesIndex from '$lib/server/generated/courses-index.json';
+import courseDepartmentManifest from '$lib/server/generated/course-department-manifest.json';
+
 const GRADE_ORDER = ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'] as const;
 
-let coursesIndexCache: CourseIndexEntry[] | null = null;
-let manifestCache: CoursesDepartmentManifest | null = null;
+const typedCoursesIndex = coursesIndex as CourseIndexEntry[]
+const typedManifest = courseDepartmentManifest as CoursesDepartmentManifest; 
+
+const departmentModules = import.meta.glob('$lib/server/generated/courses-by-department/*.json', {
+	import: 'default'
+});
+
 const departmentCache = new Map<string, DepartmentCoursesFile>();
 
-async function readJson<T>(assetPath: string): Promise<T> {
-	const response = read(assetPath);
-
-	if (!response) {
-		throw new Error(`Asset not found: ${assetPath}`);
-	}
-
-	return (await response.json()) as T;
-}
-
-/**
- * Load full courses index, cached
- * @returns cached courses index
- */
 export async function getCoursesIndex(): Promise<CourseIndexEntry[]> {
-	if (!coursesIndexCache) {
-		coursesIndexCache = await readJson<CourseIndexEntry[]>(
-			'/data/processed/courses-index.json'
-		);
-	}
+	return typedCoursesIndex;
+} 
 
-	return coursesIndexCache;
-}
-
-/**
- * Load slug -> department map, cached
- * @returns the cached manifest
- */
 async function getManifest(): Promise<CoursesDepartmentManifest> {
-	if (!manifestCache) {
-		manifestCache = await readJson<CoursesDepartmentManifest>(
-			'/data/processed/course-department-manifest.json'
-		);
-	}
-
-	return manifestCache;
+	return typedManifest;
 }
 
 /**
@@ -58,14 +35,19 @@ async function getManifest(): Promise<CoursesDepartmentManifest> {
  * @returns the cached department
  */
 async function getDepartmentChunk(departmentKey: string): Promise<DepartmentCoursesFile> {
-	if (!departmentCache.has(departmentKey)) {
-		const data = await readJson<DepartmentCoursesFile>(
-			`/data/processed/courses-by-department/${departmentKey}.json`
-		);
-		departmentCache.set(departmentKey, data);
+	const cached = departmentCache.get(departmentKey);
+	if (cached) return cached;
+
+	const modulePath = `/src/lib/server/generated/courses-by-department/${departmentKey}.json`;
+	const loader = departmentModules[modulePath];
+
+	if (!loader) {
+		throw new Error(`Department chunk not found: ${departmentKey}`);
 	}
 
-	return departmentCache.get(departmentKey)!;
+	const data = (await loader()) as DepartmentCoursesFile;
+	departmentCache.set(departmentKey, data);
+	return data;
 }
 
 function getSearchRelevanceScore(course: CourseIndexEntry, query: string): number {

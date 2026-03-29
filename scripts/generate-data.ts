@@ -24,8 +24,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PROJECT_ROOT = path.resolve(__dirname, '..');
-const STATIC_DATA_DIR = path.join(PROJECT_ROOT, 'static', 'data');
-const OUTPUT_DIR = path.join(STATIC_DATA_DIR, 'processed');
+const RAW_DATA_DIR = path.join(PROJECT_ROOT, 'static', 'data');
+const OUTPUT_DIR = path.join(PROJECT_ROOT, 'src', 'lib', 'server', 'generated');
 const COURSES_BY_DEPARTMENT_DIR = path.join(OUTPUT_DIR, 'courses-by-department');
 
 const GRADE_KEYS = ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'] as const;
@@ -279,7 +279,7 @@ function buildCourseArtifact(data: CombinedCourseData[]): {
 }
 
 async function readCsv(filename: string): Promise<string> {
-	const filepath = path.join(STATIC_DATA_DIR, filename);
+	const filepath = path.join(RAW_DATA_DIR, filename);
 	return readFile(filepath, 'utf8');
 }
 

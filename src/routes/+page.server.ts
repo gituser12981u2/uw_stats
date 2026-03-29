@@ -1,7 +1,8 @@
-import type { CoursesSearchResponse, FilterOptions, HomePageData } from '$lib/types';
-import type { PageLoad } from './$types';
+import type { CoursesSearchResponse, HomePageData } from '$lib/types';
+import filterOptions from '$lib/server/generated/filter-options.json';
+import type { PageServerLoad } from './$types';
 
-export const load: PageLoad = async ({ fetch, url }): Promise<HomePageData> => {
+export const load: PageServerLoad = async ({ fetch, url }): Promise<HomePageData> => {
 	const search = url.searchParams.get('search')?.trim() ?? '';
 	const department = url.searchParams.get('department')?.trim() ?? '';
 	const year = url.searchParams.get('year')?.trim() ?? '';
@@ -13,20 +14,12 @@ export const load: PageLoad = async ({ fetch, url }): Promise<HomePageData> => {
 	if (year) params.set('year', year);
 	if (instructor) params.set('instructor', instructor);
 
-	const [filtersRes, courseRes] = await Promise.all([
-		fetch('/data/processed/filter-options.json'),
-		fetch(`/api/courses?${params.toString()}`)
-	]);
-
-	if (!filtersRes.ok) {
-		throw new Error('Failed to load filter options');
-	}
+	const courseRes = await fetch(`/api/courses?${params.toString()}`);
 
 	if (!courseRes.ok) {
 		throw new Error('Failed to load courses');
 	}
 
-	const filterOptions = (await filtersRes.json()) as FilterOptions;
 	const coursesPayload = (await courseRes.json()) as CoursesSearchResponse;
 
 	return {
