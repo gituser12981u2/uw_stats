@@ -3,7 +3,7 @@ export interface GradeData {
 	Term: string;
 	Course_Number: string;
 	Course_Title: string;
-	Primary_Instructor: string;
+	Primary_Instructor: string | null;
 	Student_Count: number;
 	A: number;
 	'A-': number;
@@ -120,7 +120,7 @@ export type GradeDistributionItem = {
 };
 
 export type InstructorStat = {
-	name: string;
+	name: string | null;
 	offerings: number;
 	totalStudents: number;
 	averageGPA: number;

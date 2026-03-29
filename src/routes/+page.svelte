@@ -31,6 +31,7 @@
 	let selectedYear = $state('');
 	let selectedInstructor = $state('');
 	let searchQuery = $state('');
+	let lastSearchQuery = $state('');
 
 	let hasInitializedSearch = $state(false);
 
@@ -161,7 +162,19 @@
 
 		searchTimeout = setTimeout(() => {
 			void navigateToFilters();
-		}, 250);
+		}, 150);
+	}
+
+	function cancelScheduledNavigate() {
+		if (searchTimeout) {
+			clearTimeout(searchTimeout);
+			searchTimeout = null;
+		}
+	}
+
+	function navigateImmediately() {
+		cancelScheduledNavigate();
+		void navigateToFilters();
 	}
 
 	$effect(() => {
@@ -173,16 +186,31 @@
 			selectedInstructor !== data.filters.instructor;
 
 		if (changed) {
-			void navigateToFilters();
+			navigateImmediately();
 		}
 	});
 
 	$effect(() => {
 		if (isSyncingFromData) return;
+		if (searchQuery === data.filters.search) return;
 
-		if (searchQuery !== data.filters.search) {
-			scheduleNavigate();
+		const trimmed = searchQuery.trim();
+		const previousTrimmed = lastSearchQuery.trim();
+
+		if (trimmed === '') {
+			lastSearchQuery = searchQuery;
+			navigateImmediately();
+			return;
 		}
+
+		if (trimmed.length < previousTrimmed.length) {
+			lastSearchQuery = searchQuery;
+			navigateImmediately();
+			return;
+		}
+
+		lastSearchQuery = searchQuery;
+		scheduleNavigate();
 	});
 
 	$effect(() => {
