@@ -1,3 +1,4 @@
+import { read } from '$app/server';
 import type {
 	CourseDetailPayload,
 	CourseIndexEntry,
@@ -5,20 +6,21 @@ import type {
 	DepartmentCoursesFile,
 	GradeDistributionItem
 } from '$lib/types';
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
 
-const DATA_DIR = path.resolve('static/data/processed');
-const DEPT_DIR = path.join(DATA_DIR, 'courses-by-department');
 const GRADE_ORDER = ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'] as const;
 
 let coursesIndexCache: CourseIndexEntry[] | null = null;
 let manifestCache: CoursesDepartmentManifest | null = null;
 const departmentCache = new Map<string, DepartmentCoursesFile>();
 
-async function readJson<T>(filepath: string): Promise<T> {
-	const text = await readFile(filepath, 'utf8');
-	return JSON.parse(text) as T;
+async function readJson<T>(assetPath: string): Promise<T> {
+	const response = read(assetPath);
+
+	if (!response) {
+		throw new Error(`Asset not found: ${assetPath}`);
+	}
+
+	return (await response.json()) as T;
 }
 
 /**
@@ -28,7 +30,7 @@ async function readJson<T>(filepath: string): Promise<T> {
 export async function getCoursesIndex(): Promise<CourseIndexEntry[]> {
 	if (!coursesIndexCache) {
 		coursesIndexCache = await readJson<CourseIndexEntry[]>(
-			path.join(DATA_DIR, 'courses-index.json')
+			'/data/processed/courses-index.json'
 		);
 	}
 
@@ -42,7 +44,7 @@ export async function getCoursesIndex(): Promise<CourseIndexEntry[]> {
 async function getManifest(): Promise<CoursesDepartmentManifest> {
 	if (!manifestCache) {
 		manifestCache = await readJson<CoursesDepartmentManifest>(
-			path.join(DATA_DIR, 'course-department-manifest.json')
+			'/data/processed/course-department-manifest.json'
 		);
 	}
 
@@ -58,7 +60,7 @@ async function getManifest(): Promise<CoursesDepartmentManifest> {
 async function getDepartmentChunk(departmentKey: string): Promise<DepartmentCoursesFile> {
 	if (!departmentCache.has(departmentKey)) {
 		const data = await readJson<DepartmentCoursesFile>(
-			path.join(DEPT_DIR, `${departmentKey}.json`)
+			`/data/processed/courses-by-department/${departmentKey}.json`
 		);
 		departmentCache.set(departmentKey, data);
 	}
