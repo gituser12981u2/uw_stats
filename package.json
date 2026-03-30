@@ -1,7 +1,7 @@
 {
 	"name": "uw-stats",
 	"private": true,
-	"version": "0.0.2",
+	"version": "0.1.2",
 	"type": "module",
 	"scripts": {
 		"generate:data": "tsx scripts/generate-data.ts",
@@ -20,8 +20,8 @@
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
 		"@eslint/js": "^9.18.0",
-		"@sveltejs/adapter-vercel": "^5.6.3",
-		"@sveltejs/kit": "^2.16.0",
+		"@sveltejs/adapter-vercel": "^6.3.3",
+		"@sveltejs/kit": "^2.55.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"@tailwindcss/vite": "^4.0.0",
 		"@testing-library/jest-dom": "^6.6.3",
@@ -35,7 +35,7 @@
 		"prettier": "3.6.2",
 		"prettier-plugin-svelte": "3.4.0",
 		"prettier-plugin-tailwindcss": "0.6.11",
-		"svelte": "^5.0.0",
+		"svelte": "^5.46.4",
 		"svelte-check": "^4.0.0",
 		"tailwindcss": "^4.0.0",
 		"tsx": "^4.20.3",
