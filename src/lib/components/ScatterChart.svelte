@@ -135,9 +135,9 @@
 					const first = elements[0];
 					if (!first) return;
 
-					const point = chartInstance.data.datasets[first.datasetIndex].data[
-						first.index
-					] as ScatterPoint | undefined;
+					const point = chartInstance.data.datasets[first.datasetIndex].data[first.index] as
+						| ScatterPoint
+						| undefined;
 
 					if (!point) return;
 
