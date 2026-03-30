@@ -1,81 +1,45 @@
 <script lang="ts">
-	import type { CombinedCourseData } from '$lib/types';
+	import { resolve } from '$app/paths';
+	import type { CourseIndexEntry } from '$lib/types';
 
-	export let data: CombinedCourseData[] = [];
+	let {
+		data = [],
+		hasActiveFilters = false
+	}: {
+		data?: CourseIndexEntry[];
+		hasActiveFilters?: boolean;
+	} = $props();
 
-	// Group courses by course number and calculate averages
-	function getTopCourses() {
-		const courseMap = new Map<
-			string,
-			{
-				department: string;
-				courseNumber: string;
-				title: string;
-				totalOfferings: number;
-				totalStudents: number;
-				averageGPA: number;
-				averageRating: number | null;
-				gpaSum: number;
-				ratingSum: number;
-				ratingCount: number;
-			}
-		>();
+	const tableTitle = $derived(hasActiveFilters ? 'Matching Courses' : 'Top Courses');
 
-		data.forEach((course) => {
-			const key = `${course.department}-${course.courseNumber}`;
+	const tableDescription = $derived(
+		hasActiveFilters
+			? 'Showing courses matching current search and filters, ranked by average GPA'
+			: 'Showing top 20 courses with 2+ offerings, sorted by average GPA'
+	);
 
-			if (!courseMap.has(key)) {
-				courseMap.set(key, {
-					department: course.department,
-					courseNumber: course.courseNumber,
-					title: course.Course_Title,
-					totalOfferings: 0,
-					totalStudents: 0,
-					averageGPA: 0,
-					averageRating: null,
-					gpaSum: 0,
-					ratingSum: 0,
-					ratingCount: 0
-				});
-			}
-
-			const courseStats = courseMap.get(key)!;
-			courseStats.totalOfferings++;
-			courseStats.totalStudents += course.Student_Count || 0;
-			courseStats.gpaSum += course.Average_GPA;
-
-			if (course.evalMedian?.MedianGlobal) {
-				courseStats.ratingSum += course.evalMedian.MedianGlobal;
-				courseStats.ratingCount++;
-			}
-		});
-
-		// Calculate averages and convert to array
-		const courses = Array.from(courseMap.values()).map((course) => ({
-			...course,
-			averageGPA: course.gpaSum / course.totalOfferings,
-			averageRating: course.ratingCount > 0 ? course.ratingSum / course.ratingCount : null
-		}));
-
-		// Sort by GPA descending, then by number of offerings
-		return courses
-			.filter((course) => course.totalOfferings >= 2) // Only show courses with multiple offerings
+	const topCourses = $derived(
+		[...data]
 			.sort((a, b) => {
-				if (Math.abs(a.averageGPA - b.averageGPA) < 0.1) {
+				const aGpa2 = Number(a.averageGPA.toFixed(2));
+				const bGpa2 = Number(b.averageGPA.toFixed(2));
+
+				if (bGpa2 !== aGpa2) {
+					return bGpa2 - aGpa2;
+				}
+
+				if (b.totalOfferings !== a.totalOfferings) {
 					return b.totalOfferings - a.totalOfferings;
 				}
-				return b.averageGPA - a.averageGPA;
-			})
-			.slice(0, 20);
-	}
 
-	function getCourseSlug(department: string, courseNumber: string) {
-		return `${department}-${courseNumber}`;
-	}
+				return a.slug.localeCompare(b.slug);
+			})
+			.slice(0, 20)
+	);
 </script>
 
 <div class="rounded-2xl border border-gray-100 bg-white p-8 shadow-lg">
-	<h3 class="mb-6 text-xl font-semibold text-gray-800">Top Courses by GPA</h3>
+	<h3 class="mb-6 text-xl font-semibold text-gray-800">{tableTitle}</h3>
 
 	{#if data.length === 0}
 		<p class="py-8 text-center text-gray-500">No course data available.</p>
@@ -93,15 +57,14 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each getTopCourses() as course (course.department + course.courseNumber)}
+					{#each topCourses as course (course.slug)}
 						<tr class="border-b border-gray-100 transition-colors hover:bg-gray-50">
 							<td class="px-4 py-4">
 								<a
-									href="/course/{getCourseSlug(course.department, course.courseNumber)}"
+									href={resolve('/course/[slug]', { slug: course.slug })}
 									class="font-medium text-blue-600 transition-colors hover:text-blue-800 hover:underline"
 								>
-									{course.department}
-									{course.courseNumber}
+									{course.courseCode}
 								</a>
 							</td>
 							<td class="max-w-xs truncate px-4 py-4 text-gray-700" title={course.title}>
@@ -128,7 +91,7 @@
 		</div>
 
 		<div class="mt-4 text-center text-sm text-gray-500">
-			Showing top 20 courses with 2+ offerings, sorted by average GPA
+			{tableDescription}
 		</div>
 	{/if}
 </div>

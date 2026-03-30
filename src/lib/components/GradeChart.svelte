@@ -1,40 +1,60 @@
 <script lang="ts">
-	import { onMount, afterUpdate } from 'svelte';
-	import type { CombinedCourseData } from '../types';
+	import { onMount } from 'svelte';
 	import type { Chart } from 'chart.js';
+	import type { GradeDistributionItem } from '$lib/types';
 
-	export let data: CombinedCourseData[] = [];
+	let {
+		data = []
+	}: {
+		data?: GradeDistributionItem[];
+	} = $props();
 
-	let canvas: HTMLCanvasElement;
+	let canvas = $state<HTMLCanvasElement | undefined>(undefined);
 	let chart: Chart | null = null;
 
-	onMount(async () => {
-		const Chart = (await import('chart.js/auto')).default;
-		renderChart(Chart);
+	const labels = $derived(data.map((item) => item.grade));
+	const values = $derived(data.map((item) => item.count));
+
+	onMount(() => {
+		let disposed = false;
+
+		void (async () => {
+			const Chart = (await import('chart.js/auto')).default;
+
+			if (!disposed) {
+				renderChart(Chart);
+			}
+		})();
+
+		return () => {
+			disposed = true;
+			chart?.destroy();
+			chart = null;
+		};
 	});
 
-	afterUpdate(() => {
-		if (chart) {
-			updateChart();
-		}
+	$effect(() => {
+		if (!chart) return;
+
+		chart.data.labels = labels;
+		chart.data.datasets[0].data = values;
+		chart.update();
 	});
 
-	async function renderChart(Chart: typeof import('chart.js/auto').default) {
+	async function renderChart(ChartCtor: typeof import('chart.js/auto').default) {
 		if (!canvas) return;
 
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;
 
-		const gradeData = calculateGradeData();
-
-		chart = new Chart(ctx, {
+		chart = new ChartCtor(ctx, {
 			type: 'bar',
 			data: {
-				labels: Object.keys(gradeData),
+				labels,
 				datasets: [
 					{
 						label: 'Number of Students',
-						data: Object.values(gradeData),
+						data: values,
 						backgroundColor: [
 							'#10b981',
 							'#059669',
@@ -77,36 +97,18 @@
 			}
 		});
 	}
-
-	function calculateGradeData() {
-		return {
-			A: data.reduce((sum, d) => sum + (d.A || 0), 0),
-			'A-': data.reduce((sum, d) => sum + (d['A-'] || 0), 0),
-			'B+': data.reduce((sum, d) => sum + (d['B+'] || 0), 0),
-			B: data.reduce((sum, d) => sum + (d.B || 0), 0),
-			'B-': data.reduce((sum, d) => sum + (d['B-'] || 0), 0),
-			'C+': data.reduce((sum, d) => sum + (d['C+'] || 0), 0),
-			C: data.reduce((sum, d) => sum + (d.C || 0), 0),
-			'C-': data.reduce((sum, d) => sum + (d['C-'] || 0), 0),
-			'D+': data.reduce((sum, d) => sum + (d['D+'] || 0), 0),
-			D: data.reduce((sum, d) => sum + (d.D || 0), 0),
-			'D-': data.reduce((sum, d) => sum + (d['D-'] || 0), 0),
-			F: data.reduce((sum, d) => sum + (d.F || 0), 0)
-		};
-	}
-
-	function updateChart() {
-		if (!chart) return;
-
-		const gradeData = calculateGradeData();
-		chart.data.datasets[0].data = Object.values(gradeData);
-		chart.update();
-	}
 </script>
 
 <div class="rounded-2xl border border-gray-100 bg-white p-8 shadow-lg">
 	<h3 class="mb-6 text-center text-xl font-semibold text-gray-800">Grade Distribution</h3>
-	<div class="h-96">
-		<canvas bind:this={canvas}></canvas>
-	</div>
+
+	{#if data.length === 0}
+		<div class="h=96 flex items-center justify-center text-gray-500">
+			<p>No grade distribution available.</p>
+		</div>
+	{:else}
+		<div class="h-96">
+			<canvas bind:this={canvas}></canvas>
+		</div>
+	{/if}
 </div>

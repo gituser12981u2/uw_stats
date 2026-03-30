@@ -1,13 +1,13 @@
 {
 	"name": "uw-stats",
 	"private": true,
-	"version": "0.0.2",
+	"version": "0.1.2",
 	"type": "module",
 	"scripts": {
-		"build:data": "tsx scripts/process-data.ts",
-		"prebuild": "npm run build:data",
+		"generate:data": "tsx scripts/generate-data.ts",
+		"prebuild": "npm run generate:data",
 		"dev": "vite dev",
-		"build": "npm run build:data && vite build",
+		"build": "npm run prebuild && vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -20,21 +20,22 @@
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
 		"@eslint/js": "^9.18.0",
-		"@sveltejs/adapter-vercel": "^5.6.3",
-		"@sveltejs/kit": "^2.16.0",
+		"@sveltejs/adapter-vercel": "^6.3.3",
+		"@sveltejs/kit": "^2.55.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"@tailwindcss/vite": "^4.0.0",
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/svelte": "^5.2.4",
+		"@types/node": "^22.0.0",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
-		"eslint-plugin-svelte": "^3.0.0",
+		"eslint-plugin-svelte": "^3.6.0",
 		"globals": "^16.0.0",
 		"jsdom": "^26.0.0",
-		"prettier": "^3.4.2",
-		"prettier-plugin-svelte": "^3.3.3",
-		"prettier-plugin-tailwindcss": "^0.6.11",
-		"svelte": "^5.0.0",
+		"prettier": "3.6.2",
+		"prettier-plugin-svelte": "3.4.0",
+		"prettier-plugin-tailwindcss": "0.6.11",
+		"svelte": "^5.46.4",
 		"svelte-check": "^4.0.0",
 		"tailwindcss": "^4.0.0",
 		"tsx": "^4.20.3",
@@ -46,5 +47,8 @@
 	"dependencies": {
 		"@vercel/analytics": "^1.5.0",
 		"chart.js": "^4.4.9"
+	},
+	"volta": {
+		"node": "22.22.2"
 	}
 }
