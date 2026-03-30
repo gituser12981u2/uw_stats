@@ -27,6 +27,9 @@ jobs:
       - name: Run ESLint and Prettier formatting
         run: npm run lint
 
+      - name: Generate data
+        run: npm run generate:data
+
       - name: TypeScript check
         run: npm run check
 

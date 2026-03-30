@@ -7,7 +7,7 @@
 		"generate:data": "tsx scripts/generate-data.ts",
 		"prebuild": "npm run generate:data",
 		"dev": "vite dev",
-		"build": "npm run generate:data && vite build",
+		"build": "npm run prebuild && vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
